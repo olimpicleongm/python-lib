@@ -14,22 +14,27 @@ class WunderlistAPI:
 
 	def fetchFromAPI(self, fetch_url):
 		uri = fetch_url % (self.access_token, self.client_id)
-		resp = urllib2.urlopen(uri).read()
-		r = json.loads(resp)
-		return r
+		response = urllib2.urlopen(uri).read()
+		result = json.loads(response)
+		return result
 
 	def pushToAPI(self, push_url, payload, patch=False):
 		headers = {'X-Access-Token': self.access_token, 'X-Client-ID': self.client_id, 'Content-Type': 'application/json'}
-		req = urllib2.Request(push_url, json.dumps(payload), headers)
+		request = urllib2.Request(push_url, json.dumps(payload), headers)
 		if patch:
-			req.get_method = lambda: 'PATCH'
-		return json.loads(urllib2.urlopen(req).read())
+			request.get_method = lambda: 'PATCH'
+		return json.loads(urllib2.urlopen(request).read())
 
 	def getLists(self):
 		return self.fetchFromAPI(API_ENDPOINT + '/lists?access_token=%s&client_id=%s')
 
 	def createTask(self, task):
 		return self.pushToAPI(API_ENDPOINT + '/tasks', task)
+
+	def updateTask(self, task):
+		task_id = str(task['task_id'])
+		del(task['task_id'])
+		return self.pushToAPI(API_ENDPOINT + '/tasks/' + task_id, task, True)
 
 	def createNoteForTask(self, note):
 		return self.pushToAPI(API_ENDPOINT + '/notes', note)
